@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
@@ -46,6 +47,7 @@ public class Synchronizer {
     private final ConcurrentSkipListSet<WritePosition> syncAndCloseFile = new ConcurrentSkipListSet<>();
     private volatile ScheduledFuture<?> forceJob;
     private volatile ScheduledFuture<?> syncJob;
+    private volatile AtomicBoolean updated = new AtomicBoolean();
 
     public Synchronizer(EventTypeContext context, StorageProperties storageProperties, Consumer<WritePosition> completeSegmentCallback) {
         this.context = context;
@@ -64,6 +66,7 @@ public class Synchronizer {
                         WritePosition writePosition = writePositionEntry.getKey();
                         if (writePosition.isComplete() &&
                                 writePositionEntry.getValue().onCompleted(writePosition.sequence)) {
+                            updated.set(true);
 
 
                                 if (canSyncAt(writePosition)) {
@@ -121,8 +124,10 @@ public class Synchronizer {
     }
 
     public void forceCurrent() {
-        if( current != null) {
-            current.force();
+        if (updated.compareAndSet(true, false)) {
+            if (current != null) {
+                current.force();
+            }
         }
     }
 

@@ -8,7 +8,7 @@ properties([
 def label = "worker-${UUID.randomUUID().toString()}"
 
 def deployingBranches = [   // The branches mentioned here will get their artifacts deployed to Nexus
-    "master", "axonserver-se-4.2.x"
+    "master", "axonserver-se-4.2.x", "test/jenkins"
 ]
 def dockerBranches = [      // The branches mentioned here will get Docker test images built
     "master", "axonserver-se-4.2.x", "test/jenkins"
@@ -81,10 +81,19 @@ podTemplate(label: label,
             stage ('Maven build') {
                 container("maven") {
                     try {
+                        if (relevantBranch(gitBranch, deployingBranches)) {                // Deploy artifacts to Nexus for some branches
+                            mavenTarget = "clean deploy"
+                        }
                         if (relevantBranch(gitBranch, dockerBranches)) {
                             mavenTarget = mavenTarget + " jib:build"
                         }
                         sh "mvn \${MVN_BLD} -Dmaven.test.failure.ignore ${mavenTarget}"   // Ignore test failures; we want the numbers only.
+                        if (relevantBranch(gitBranch, deployingBranches)) {                // Deploy artifacts to Nexus for some branches
+                            slackReport + "\nDeployed to dev-nexus"
+                        }
+                        if (relevantBranch(gitBranch, dockerBranches)) {
+                            slackReport + "\nNew Docker images have been pushed"
+                        }
                     }
                     catch (err) {
                         slackReport = slackReport + "\nMaven build FAILED!"             // This means build itself failed, not 'just' tests
@@ -93,9 +102,6 @@ podTemplate(label: label,
                     finally {
                         junit '**/target/surefire-reports/TEST-*.xml'                   // Read the test results
                         slackReport = slackReport + "\n" + getTestSummary()
-                    }
-                    if (relevantBranch(gitBranch, deployingBranches)) {                // Deploy artifacts to Nexus for some branches
-                        sh "mvn \${MVN_BLD} -DskipTests deploy"
                     }
                 }
             }
@@ -129,7 +135,6 @@ podTemplate(label: label,
 
                 /*
                  * If we have Docker images and artifacts in Nexus, we can run Canary tests on them.
-                 */
                 if (relevantBranch(gitBranch, dockerBranches) && relevantBranch(gitBranch, deployingBranches)) {
                     def canaryTests = build job: 'axon-server-canary/master', propagate: false, wait: true,
                         parameters: [
@@ -141,6 +146,7 @@ podTemplate(label: label,
                         slackReport = slackReport + "\nCanary Tests FAILED!"
                     }
                 }
+                 */
             }
             // Tell the team what happened.
             slackSend(message: slackReport)

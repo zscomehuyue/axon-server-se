@@ -89,10 +89,10 @@ podTemplate(label: label,
                         }
                         sh "mvn \${MVN_BLD} -Dmaven.test.failure.ignore ${mavenTarget}"   // Ignore test failures; we want the numbers only.
                         if (relevantBranch(gitBranch, deployingBranches)) {                // Deploy artifacts to Nexus for some branches
-                            slackReport + "\nDeployed to dev-nexus"
+                            slackReport = slackReport + "\nDeployed to dev-nexus"
                         }
                         if (relevantBranch(gitBranch, dockerBranches)) {
-                            slackReport + "\nNew Docker images have been pushed"
+                            slackReport = slackReport + "\nNew Docker images have been pushed"
                         }
                     }
                     catch (err) {

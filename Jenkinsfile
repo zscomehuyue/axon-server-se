@@ -11,7 +11,7 @@ def deployingBranches = [   // The branches mentioned here will get their artifa
     "master", "axonserver-se-4.2.x"
 ]
 def dockerBranches = [      // The branches mentioned here will get Docker test images built
-    "master", "axonserver-se-4.2.x"
+    "master", "axonserver-se-4.2.x", "test/jenkins"
 ]
 def sonarBranches = [       // The branches mentioned here will get a SonarQube analysis
     "master", "axonserver-se-4.2.x"
@@ -77,10 +77,14 @@ podTemplate(label: label,
             def pomArtifactId = 'axonserver'
 
             def slackReport = "Maven build for Axon Server SE ${pomVersion} (branch \"${gitBranch}\")."
+            def mavenTarget = "clean verify"
             stage ('Maven build') {
                 container("maven") {
                     try {
-                        sh "mvn \${MVN_BLD} -Dmaven.test.failure.ignore clean verify"   // Ignore test failures; we want the numbers only.
+                        if (relevantBranch(gitBranch, dockerBranches)) {
+                            mavenTarget = mavenTarget + " jib:build"
+                        }
+                        sh "mvn \${MVN_BLD} -Dmaven.test.failure.ignore ${mavenTarget}"   // Ignore test failures; we want the numbers only.
                     }
                     catch (err) {
                         slackReport = slackReport + "\nMaven build FAILED!"             // This means build itself failed, not 'just' tests
@@ -107,7 +111,6 @@ podTemplate(label: label,
             stage('Trigger followup') {
                 /*
                  * Run a subsidiary build to make Docker test images.
-                 */
                 if (relevantBranch(gitBranch, dockerBranches)) {
                     def dockerBuild = build job: 'axon-server-dockerimages/master', propagate: false, wait: true,
                         parameters: [
@@ -122,6 +125,7 @@ podTemplate(label: label,
                         slackReport = slackReport + "\nNew Docker images have been pushed."
                     }
                 }
+                 */
 
                 /*
                  * If we have Docker images and artifacts in Nexus, we can run Canary tests on them.

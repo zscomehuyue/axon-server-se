@@ -18,6 +18,7 @@ import io.axoniq.axonserver.grpc.control.EventProcessorInfo;
 public class ClientEventProcessorInfo {
 
     private final String clientName;
+    //TODO remove context in favour of token store identifier
     private final String context;
     private final EventProcessorInfo eventProcessorInfo;
 

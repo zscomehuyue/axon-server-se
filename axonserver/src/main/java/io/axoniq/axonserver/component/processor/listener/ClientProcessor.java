@@ -10,22 +10,30 @@
 package io.axoniq.axonserver.component.processor.listener;
 
 import io.axoniq.axonserver.component.ComponentItem;
+import io.axoniq.axonserver.component.processor.EventProcessorIdentifier;
+import io.axoniq.axonserver.component.processor.NameBasedEventProcessorIdentifier;
 import io.axoniq.axonserver.grpc.control.EventProcessorInfo;
 import io.axoniq.axonserver.grpc.control.EventProcessorInfo.SegmentStatus;
 
 import java.util.Iterator;
 
 /**
- * Created by Sara Pellegrini on 21/03/2018.
- * sara.pellegrini@gmail.com
+ * Represents the Event Processor instance running in a client application connected to Axon Server.
+ *
+ * @author Sara Pellegrini
  */
 public interface ClientProcessor extends ComponentItem, Iterable<SegmentStatus> {
 
     String clientId();
 
+    default EventProcessorIdentifier processorId() {
+        //TODO the implementation of the EventProcessorIdentifier will depends from the processor type. In case of Tracking Event Processor we need a TrackingProcessorIdentifier
+        return new NameBasedEventProcessorIdentifier(eventProcessorInfo().getProcessorName());
+    }
+
     EventProcessorInfo eventProcessorInfo();
 
-    default Boolean running(){
+    default Boolean running() {
         return eventProcessorInfo().getRunning();
     }
 

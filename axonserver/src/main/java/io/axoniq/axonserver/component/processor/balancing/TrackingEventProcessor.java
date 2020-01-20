@@ -24,6 +24,7 @@ public final class TrackingEventProcessor implements Serializable {
 
     private String name;
 
+    //TODO this should be replaced by the token store identifier
     private String context;
 
     @SuppressWarnings("unused")

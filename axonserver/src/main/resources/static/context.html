@@ -14,7 +14,7 @@
                 el: '#context',
                 data: {
                     contexts: [],
-                    newContext: {nodes: []},
+                    newContext: {nodes: [], metadata: [{"key": "", "value": ""}]},
                     admin: globals.admin,
                     webSocketInfo: globals.webSocketInfo,
                     nodes: [],
@@ -39,6 +39,7 @@
                 }, methods: {
                     initNewContext() {
                         this.newContext.context = "";
+                        this.newContext.metadata = [{"key": "", "value": ""}];
                         for (var a = 0; a < this.nodes.length; a++) {
                             this.newContext.nodes[a] = {
                                 name: this.nodes[a].name,
@@ -117,9 +118,9 @@
                             alert("Context " + this.newContext.context + " already exists");
                             return;
                         }
-                        let context = {context: this.newContext.context, roles: []};
+                        let context = {context: this.newContext.context, roles: [], metaData: {}};
                         let primaryNode = false;
-                        for (var i = 0; i < this.newContext.nodes.length; i++) {
+                        for (let i = 0; i < this.newContext.nodes.length; i++) {
                             if (this.newContext.nodes[i].selectedRole !== "none") {
                                 context.roles.push({
                                                        "node": this.newContext.nodes[i].name,
@@ -129,6 +130,13 @@
                                     primaryNode = true;
                                 }
                             }
+                        }
+                        let md = this.newContext.metadata;
+                        for (let i = 0; i < md.length; i++) {
+                            if (md[i].key !== "" && md[i].value !== "") {
+                                context.metaData[md[i].key] = md[i].value;
+                            }
+
                         }
 
                         if (!primaryNode) {
@@ -183,7 +191,11 @@
                     },
                     isInternalContext(context) {
                         return context.context.charAt(0) === '_';
+                    },
+                    addMetadataElement() {
+                        this.newContext.metadata.push({"key": "", "value": ""});
                     }
+
                 }
             });
 
@@ -255,6 +267,17 @@
                                         <option value="none">-- none --</option>
                                         <option v-for="n in roles" :value="n">{{n}}</option>
                                     </select>
+                                </div>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="narrow">Metadata</span>
+                            <span>
+                                <div v-for="metadata in newContext.metadata">
+                                        <input v-model="metadata.key"/>
+                                        <input v-model="metadata.value"/>
+                                        <span @click="addMetadataElement()" title="Add"
+                                              style="float: none; display: inline;"><i class="fas fa-plus"></i></span>
                                 </div>
                             </span>
                         </li>

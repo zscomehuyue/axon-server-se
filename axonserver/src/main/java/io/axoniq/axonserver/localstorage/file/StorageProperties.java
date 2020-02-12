@@ -92,11 +92,32 @@ public class StorageProperties {
         this.systemInfoProvider = systemInfoProvider;
     }
 
-    public StorageProperties(SystemInfoProvider systemInfoProvider, String eventsSuffix, String indexSuffix, String bloomIndexSuffix) {
+    public StorageProperties(SystemInfoProvider systemInfoProvider, String eventsSuffix, String indexSuffix,
+                             String bloomIndexSuffix) {
         this(systemInfoProvider);
         this.eventsSuffix = eventsSuffix;
         this.indexSuffix = indexSuffix;
         this.bloomIndexSuffix = bloomIndexSuffix;
+    }
+
+    public StorageProperties(StorageProperties storageProperties) {
+        this(storageProperties.systemInfoProvider);
+        bloomIndexFpp = storageProperties.bloomIndexFpp;
+        bloomIndexSuffix = storageProperties.bloomIndexSuffix;
+        eventsSuffix = storageProperties.eventsSuffix;
+        flags = storageProperties.flags;
+        forceInterval = storageProperties.forceInterval;
+        indexSuffix = storageProperties.indexSuffix;
+        maxBloomFiltersInMemory = storageProperties.maxBloomFiltersInMemory;
+        maxIndexesInMemory = storageProperties.maxIndexesInMemory;
+        numberOfSegments = storageProperties.numberOfSegments;
+        primaryCleanupDelay = storageProperties.primaryCleanupDelay;
+        readBufferSize = storageProperties.readBufferSize;
+        secondaryCleanupDelay = storageProperties.secondaryCleanupDelay;
+        storage = storageProperties.storage;
+        syncInterval = storageProperties.syncInterval;
+        validationSegments = storageProperties.validationSegments;
+        segmentSize = storageProperties.segmentSize;
     }
 
     public String getEventsSuffix() {
@@ -268,5 +289,29 @@ public class StorageProperties {
 
     public void setFlags(int flags) {
         this.flags = flags;
+    }
+
+    public StorageProperties withSegmentSize(long segmentSize) {
+        StorageProperties newStorageProperties = new StorageProperties(this);
+        newStorageProperties.segmentSize = segmentSize;
+        return newStorageProperties;
+    }
+
+    public StorageProperties withMaxBloomFiltersInMemory(int maxBloomFiltersInMemory) {
+        StorageProperties newStorageProperties = new StorageProperties(this);
+        newStorageProperties.maxBloomFiltersInMemory = maxBloomFiltersInMemory;
+        return newStorageProperties;
+    }
+
+    public StorageProperties withMaxIndexesInMemory(int maxIndexesInMemory) {
+        StorageProperties newStorageProperties = new StorageProperties(this);
+        newStorageProperties.maxIndexesInMemory = maxIndexesInMemory;
+        return newStorageProperties;
+    }
+
+    public StorageProperties withFlags(int flags) {
+        StorageProperties newStorageProperties = new StorageProperties(this);
+        newStorageProperties.flags = flags;
+        return newStorageProperties;
     }
 }
